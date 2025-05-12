@@ -1,4 +1,10 @@
 # Create a deployment yaml file for the app
+
+# This file defines a Kubernetes deployment for an application
+# with 3 replicas, using the image princestanley/github-copilot:latest
+# and exposing port 8080. It also sets resource requests and limits
+# for memory and CPU usage.
+# The deployment will be created in the default namespace.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
