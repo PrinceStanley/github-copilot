@@ -83,6 +83,7 @@ pipeline {
                 container('kubectl') {
                    script {
                       sh """
+                          pwd
                           kubectl apply -f app-deploy.yaml
                         """
                     }
