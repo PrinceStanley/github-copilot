@@ -17,7 +17,7 @@ pipeline {
                     - name: docker-graph-storage
                       mountPath: /var/lib/docker
                   - name: kubectl
-                    image:lachlanevenson/k8s-kubectl:latest
+                    image: lachlanevenson/k8s-kubectl:latest
                     command:
                     - /bin/sh
                     args:
