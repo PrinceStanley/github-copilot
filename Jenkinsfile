@@ -32,9 +32,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = 'PrinceDockerhub'
         DOCKERHUB_REPO = 'princestanley/github-copilot'
-        IMAGE_TAG = "latest"
-        AWS_REGION = 'us-east-1'
-        EKS_CLUSTER_NAME = 'uc-devops-eks-cluster'
+        IMAGE_TAG = "v${BUILD_NUMBER}"
     }
 
     stages {
@@ -82,10 +80,10 @@ pipeline {
             steps {
                 container('kubectl') {
                    script {
-                      sh """
-                          pwd
-                          kubectl apply -f app-deploy.yaml
-                        """
+                        def deploymentFile = readFile('app-deploy.yaml')
+                        def updatedDeploymentFile = deploymentFile.replaceAll(/image:\s.*$/, "image: ${DOCKERHUB_REPO}:${IMAGE_TAG}")
+                        writeFile file: 'app-deploy.yaml', text: updatedDeploymentFile
+                        sh 'kubectl apply -f app-deploy.yaml'
                     }
                 }
             }
