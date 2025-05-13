@@ -86,6 +86,8 @@ pipeline {
                         def updatedDeploymentFile = deploymentFile.replaceAll(/image:\s.*$/, "image: ${DOCKERHUB_REPO}:${IMAGE_TAG}")
                         writeFile file: 'app-deploy.yaml', text: updatedDeploymentFile
                         sh 'kubectl apply -f app-deploy.yaml'
+                        sh 'kubectl expose deploy app-deploy --port=80 --target-port=8080 -n default'
+                        sh 'kubectl create ingress app-deploy --rule="app-deploy.exlservice.com/health=app-deploy:80" --class=nginx -n default'
                     }
                 }
             }
