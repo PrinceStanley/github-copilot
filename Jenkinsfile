@@ -49,7 +49,6 @@ pipeline {
             steps {
                 script {
                     container('docker') {
-                        docker
                         docker.withRegistry('https://registry.hub.docker.com', "${DOCKERHUB_CREDENTIALS}") {
                           def customImage = docker.build("${DOCKERHUB_REPO}:${IMAGE_TAG}")
                           customImage.push()
