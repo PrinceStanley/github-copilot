@@ -1,14 +1,39 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml """
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  labels:
+                    jenkins: jenkins-pod
+                spec:
+                  containers:
+                  - name: docker
+                    image: docker:latest
+                    command:
+                    - cat
+                    tty: true
+                  - name: kubectl
+                    image: bitnami/kubectl:latest
+                    command:
+                    - cat
+                    tty: true
+            """
+        }
+    }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('PrinceDockerhub') // Replace with your Jenkins credentials ID
-        DOCKER_IMAGE = 'princestanley/github-copilot' // Replace with your DockerHub username and image name
-        KUBECONFIG_CREDENTIALS = credentials('kubeconfig-credentials') // Replace with your Jenkins credentials ID for kubeconfig
+        DOCKERHUB_CREDENTIALS = credentials('PrinceDockerhub')
+        DOCKERHUB_REPO = 'princestanley/github-copilot'
+        IMAGE_TAG = "latest"
+        AWS_REGION = 'us-east-1'
+        EKS_CLUSTER_NAME = 'uc-devops-eks-cluster'
+        KUBECONFIG_CREDENTIALS = credentials('kubeconfig-credentials-id')
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
@@ -17,36 +42,45 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_IMAGE .'
+                    docker.build("${DOCKERHUB_REPO}:${IMAGE_TAG}")
                 }
             }
         }
 
-        stage('Push Docker Image to DockerHub') {
+        stage('Push to DockerHub') {
             steps {
                 script {
-                    sh '''
-                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                    docker push $DOCKER_IMAGE
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                        sh '''
-                        kubectl apply -f app-deploy.yaml
-                        '''
+                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKERHUB_CREDENTIALS') {
+                        docker.image("${DOCKERHUB_REPO}:${IMAGE_TAG}").push()
                     }
                 }
             }
         }
-    }
 
-    post {
-        always {
-            cleanWs()
+        stage('Update Kubeconfig') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
+                    sh 'export KUBECONFIG=$KUBECONFIG'
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                script {
+                    sh """
+                        kubectl apply -f ./app-deploy.yaml
+                    """
+                }
+            }
         }
     }
+    post {
+        failure {
+            echo 'Pipeline failed!'
+        }
+        success {
+            echo 'Deployment successful!'
+        }
+    }
+}
