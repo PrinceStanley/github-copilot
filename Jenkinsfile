@@ -19,8 +19,10 @@ pipeline {
                   - name: kubectl
                     image: bitnami/kubectl:latest
                     command:
-                    - cat
-                    tty: true
+                    - /bin/sh
+                    args:
+                    - '-c'
+                    - sleep infinity
                   volumes:
                   - name: docker-graph-storage
                     emptyDir: {}
