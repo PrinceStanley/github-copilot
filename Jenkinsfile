@@ -14,6 +14,8 @@ pipeline {
                     command:
                     - cat
                     tty: true
+                    securityContext:
+                      privileged: true
                   - name: kubectl
                     image: bitnami/kubectl:latest
                     command:
