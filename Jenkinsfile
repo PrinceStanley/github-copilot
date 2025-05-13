@@ -29,7 +29,7 @@ pipeline {
         IMAGE_TAG = "latest"
         AWS_REGION = 'us-east-1'
         EKS_CLUSTER_NAME = 'uc-devops-eks-cluster'
-        KUBECONFIG_CREDENTIALS = credentials('kubeconfig-credentials-id')
+        KUBECONFIG_CREDENTIALS = credentials('kubeconfig-credentials')
     }
 
     stages {
