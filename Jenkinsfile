@@ -42,7 +42,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}:${IMAGE_TAG}")
+                    container('docker') {
+                      docker.build("${DOCKERHUB_REPO}:${IMAGE_TAG}")
+                    }
                 }
             }
         }
@@ -50,8 +52,10 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKERHUB_CREDENTIALS') {
-                        docker.image("${DOCKERHUB_REPO}:${IMAGE_TAG}").push()
+                    container('docker') {
+                      docker.withRegistry('https://registry.hub.docker.com', 'DOCKERHUB_CREDENTIALS') {
+                          docker.image("${DOCKERHUB_REPO}:${IMAGE_TAG}").push()
+                    }
                     }
                 }
             }
@@ -59,18 +63,21 @@ pipeline {
 
         stage('Update Kubeconfig') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
-                    sh 'export KUBECONFIG=$KUBECONFIG'
+                container('kubectl') {
+                  withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
+                      sh 'export KUBECONFIG=$KUBECONFIG'
+                    }
                 }
             }
         }
-
         stage('Deploy to EKS') {
             steps {
-                script {
-                    sh """
-                        kubectl apply -f ./app-deploy.yaml
-                    """
+                container('kubectl') {
+                   script {
+                      sh """
+                          kubectl apply -f ./app-deploy.yaml
+                        """
+                    }
                 }
             }
         }
