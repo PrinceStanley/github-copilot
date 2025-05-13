@@ -59,8 +59,9 @@ pipeline {
             steps {
                 script {
                     container('docker') {
-                      echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin
-                      docker push "${DOCKERHUB_REPO}:${IMAGE_TAG}"
+                      docker.withRegistry('https://registry.hub.docker.com', ${DOCKERHUB_CREDENTIALS}) {
+                        docker.image("${DOCKERHUB_REPO}:${IMAGE_TAG}").push()
+                      }
                     }
                 }
             }
