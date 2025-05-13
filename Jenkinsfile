@@ -49,13 +49,16 @@ pipeline {
             steps {
                 script {
                     container('docker') {
-                      docker.build("${DOCKERHUB_REPO}:${IMAGE_TAG}")
+                        docker.withRegistry('https://registry.hub.docker.com', ${DOCKERHUB_CREDENTIALS}) {
+                          def customImage = docker.build("${DOCKERHUB_REPO}:${IMAGE_TAG}")
+                          customImage.push()
+                        }
                     }
                 }
             }
         }
 
-        stage('Push to DockerHub') {
+        /*stage('Push to DockerHub') {
             steps {
                 script {
                     container('docker') {
@@ -65,7 +68,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
         stage('Update Kubeconfig') {
             steps {
