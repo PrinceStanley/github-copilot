@@ -10,18 +10,22 @@ pipeline {
                 spec:
                   containers:
                   - name: docker
-                    image: docker:latest
-                    command:
-                    - cat
-                    tty: true
+                    image: docker:20.10-dind
                     securityContext:
                       privileged: true
+                    volumeMounts:
+                    - name: docker-graph-storage
+                      mountPath: /var/lib/docker
                   - name: kubectl
                     image: bitnami/kubectl:latest
                     command:
                     - cat
                     tty: true
+                  volumes:
+                  - name: docker-graph-storage
+                    emptyDir: {}
             """
+            defaultContainer 'docker'
         }
     }
 
