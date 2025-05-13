@@ -67,7 +67,7 @@ pipeline {
                     }
                 }
             }
-        }*/
+        }
 
         stage('Update Kubeconfig') {
             steps {
@@ -77,7 +77,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
         stage('Deploy to EKS') {
             steps {
                 container('kubectl') {
